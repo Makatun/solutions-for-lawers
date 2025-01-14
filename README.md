@@ -1,0 +1,1 @@
+7z a -tzip lambda_function.zip ./lambda/*
