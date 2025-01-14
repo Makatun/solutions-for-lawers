@@ -1,5 +1,5 @@
+/* global fetch */
 const cheerio = require('cheerio');
-// import * as cheerio from 'cheerio';
 
 const options = {
     year: 'numeric',
@@ -8,14 +8,17 @@ const options = {
 };
 
 exports.handler = async (event) => {
-    // console.log("Hello World");
 
-    var scrapeDate = new Date(Date.parse("1/30/2024"));
-    // const scrapeDate = new Date()
+    // var scrapeDate = new Date(Date.parse("1/30/2024"));
+    const scrapeDate = new Date()
 
-    scrapeTable(scrapeDate)
-        .then(data => console.log(JSON.stringify(data, null, 2)))
-        .catch(error => console.error(error));
+
+    // try {
+    const data = await scrapeTable(scrapeDate);
+    console.log(JSON.stringify(data, null, 2))
+    // } catch (error) {
+    //     console.error(error);
+    // }
 };
 
 
@@ -40,8 +43,13 @@ async function scrapeTable(currentDate) {
 
 
         const res = await fetch(url)
+        if (!res.ok) {
+            throw new Error(`Failed to fetch page: ${res.status} ${res.statusText}`);
+        }
+
         const html = await res.text()
         const $ = cheerio.load(html)
+
 
         const tables = {};
 

@@ -42,6 +42,7 @@ resource "aws_lambda_function" "my_lambda" {
   runtime          = "nodejs18.x"
   filename         = "lambda_function.zip"
   source_code_hash = filebase64sha256("lambda_function.zip")
+  timeout          = 10 // Timeout in seconds
 }
 
 resource "aws_cloudwatch_event_rule" "every_1_minute" {
