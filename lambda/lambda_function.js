@@ -1,26 +1,68 @@
 /* global fetch */
 const cheerio = require('cheerio');
+const AWS = require('aws-sdk');
+const s3 = new AWS.S3();
+
+exports.handler = async (event) => {
+
+    // var scrapeDate = new Date(Date.parse("1/30/2024"));
+    const scrapeDate = new Date()
+    const scrapedData = await scrapeTable(scrapeDate);
+
+    const latestJson = await grabLatestJsonFromS3();
+
+    console.log("OLD:" + JSON.stringify(latestJson, null, 2))
+    console.log("NEW:" + JSON.stringify(scrapedData, null, 2))
+
+    // Compare the latest JSON with the new scrapedData
+    if (latestJson !== null && JSON.stringify(scrapedData) === JSON.stringify(latestJson)) {
+        console.log('No changes detected');
+        return;
+    }
+
+    await uploadNewFilesToS3(scrapeDate, scrapedData);
+};
+
+
+
+async function uploadNewFilesToS3(scrapeDate, scrapedData) {
+    const params = {
+        Bucket: 'visa-bulleting-s3', // S3 bucket name
+        Key: `visa-bulleting-${scrapeDate.toISOString()}.json`, // File name
+        Body: JSON.stringify(scrapedData),
+        ContentType: 'application/json'
+    };
+
+    try {
+        await s3.putObject(params).promise();
+        await s3.putObject({ ...params, Key: `visa-bulleting-latest.json` }).promise();
+        console.log('File uploaded successfully');
+    } catch (error) {
+        console.error('Error uploading file:', error);
+    }
+}
+
+async function grabLatestJsonFromS3() {
+    try {
+        const latestData = await s3.getObject({ Bucket: 'visa-bulleting-s3', Key: 'visa-bulleting-latest.json' }).promise();
+        const latestJson = JSON.parse(latestData.Body.toString('utf-8'));
+        return latestJson;
+    } catch (error) {
+        if (error.code === 'NoSuchKey') {
+            console.log('File does not exist in the bucket.');
+            return null;
+        } else {
+            throw error;
+        }
+    }
+}
+
 
 const options = {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
 };
-
-exports.handler = async (event) => {
-
-    // var scrapeDate = new Date(Date.parse("1/30/2024"));
-    const scrapeDate = new Date()
-
-
-    // try {
-    const data = await scrapeTable(scrapeDate);
-    console.log(JSON.stringify(data, null, 2))
-    // } catch (error) {
-    //     console.error(error);
-    // }
-};
-
 
 async function scrapeTable(currentDate) {
     try {

@@ -42,7 +42,8 @@ resource "aws_lambda_function" "my_lambda" {
   runtime          = "nodejs18.x"
   filename         = "lambda_function.zip"
   source_code_hash = filebase64sha256("lambda_function.zip")
-  timeout          = 10 // Timeout in seconds
+  timeout          = 10  // Timeout in seconds
+  memory_size      = 200 // Memory size in MB
 }
 
 resource "aws_cloudwatch_event_rule" "every_1_minute" {
@@ -63,4 +64,37 @@ resource "aws_lambda_permission" "allow_cloudwatch_1_minute" {
   function_name = aws_lambda_function.my_lambda.function_name
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.every_1_minute.arn
+}
+
+resource "aws_s3_bucket" "visa_bulletin_s3" {
+  bucket = "visa-bulleting-s3"
+
+  tags = {
+    Name        = "visa-bulleting-s3"
+    Environment = "Dev"
+  }
+}
+
+resource "aws_iam_role_policy" "lambda_s3_policy" {
+  name = "lambda_s3_policy"
+  role = aws_iam_role.lambda_exec_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "s3:ListBucket",
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:PutObjectAcl"
+        ],
+        Resource = [
+          "arn:aws:s3:::visa-bulleting-s3",
+          "arn:aws:s3:::visa-bulleting-s3/*"
+        ]
+      }
+    ]
+  })
 }
