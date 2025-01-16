@@ -10,11 +10,11 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-1"
+  region = var.region
 }
 
-resource "aws_iam_role" "lambda_exec_role" {
-  name = "lambda_exec_role"
+resource "aws_iam_role" "visa_bulleting_grab_lambda_exec_role" {
+  name = "visa_bulleting_grab_lambda_exec_role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -30,14 +30,14 @@ resource "aws_iam_role" "lambda_exec_role" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "lambda_policy" {
-  role       = aws_iam_role.lambda_exec_role.name
+resource "aws_iam_role_policy_attachment" "visa_bulleting_grab_lambda_policy" {
+  role       = aws_iam_role.visa_bulleting_grab_lambda_exec_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
 resource "aws_lambda_function" "visa_bulleting_grab_lambda" {
   function_name    = "visa_bulleting_grab_lambda"
-  role             = aws_iam_role.lambda_exec_role.arn
+  role             = aws_iam_role.visa_bulleting_grab_lambda_exec_role.arn
   handler          = "lambda_function.handler"
   runtime          = "nodejs18.x"
   filename         = "${path.module}/lambdas/visa_bulleting_grab_lambda.zip"
@@ -52,9 +52,9 @@ resource "aws_cloudwatch_event_rule" "every_1_minute" {
   schedule_expression = "rate(1 minute)"
 }
 
-resource "aws_cloudwatch_event_target" "lambda_target_1_minute" {
+resource "aws_cloudwatch_event_target" "visa_bulleting_grab_lambda_target_1_minute" {
   rule      = aws_cloudwatch_event_rule.every_1_minute.name
-  target_id = "lambda_target_1_minute"
+  target_id = "visa_bulleting_grab_lambda_target_1_minute"
   arn       = aws_lambda_function.visa_bulleting_grab_lambda.arn
 }
 
@@ -75,9 +75,9 @@ resource "aws_s3_bucket" "visa_bulletin_s3" {
   }
 }
 
-resource "aws_iam_role_policy" "lambda_s3_policy" {
-  name = "lambda_s3_policy"
-  role = aws_iam_role.lambda_exec_role.id
+resource "aws_iam_role_policy" "visa_bulleting_grab_lambda_s3_policy" {
+  name = "visa_bulleting_grab_lambda_s3_policy"
+  role = aws_iam_role.visa_bulleting_grab_lambda_exec_role.id
 
   policy = jsonencode({
     Version = "2012-10-17",

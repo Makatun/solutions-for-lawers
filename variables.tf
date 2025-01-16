@@ -1,5 +1,6 @@
-variable "instance_name" {
-  description = "Value of the Name tag for the EC2 instance"
+variable "region" {
+  description = "The region where resources will be created"
   type        = string
-  default     = "ExampleAppServerInstance1"
+  default     = "us-east-1"
 }
+
