@@ -35,13 +35,13 @@ resource "aws_iam_role_policy_attachment" "lambda_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
-resource "aws_lambda_function" "my_lambda" {
-  function_name    = "my_lambda"
+resource "aws_lambda_function" "visa_bulleting_grab_lambda" {
+  function_name    = "visa_bulleting_grab_lambda"
   role             = aws_iam_role.lambda_exec_role.arn
   handler          = "lambda_function.handler"
   runtime          = "nodejs18.x"
-  filename         = "lambda_function.zip"
-  source_code_hash = filebase64sha256("lambda_function.zip")
+  filename         = "${path.module}/lambdas/visa_bulleting_grab_lambda.zip"
+  source_code_hash = filebase64sha256("${path.module}/lambdas/visa_bulleting_grab_lambda.zip")
   timeout          = 10  // Timeout in seconds
   memory_size      = 200 // Memory size in MB
 }
@@ -55,13 +55,13 @@ resource "aws_cloudwatch_event_rule" "every_1_minute" {
 resource "aws_cloudwatch_event_target" "lambda_target_1_minute" {
   rule      = aws_cloudwatch_event_rule.every_1_minute.name
   target_id = "lambda_target_1_minute"
-  arn       = aws_lambda_function.my_lambda.arn
+  arn       = aws_lambda_function.visa_bulleting_grab_lambda.arn
 }
 
 resource "aws_lambda_permission" "allow_cloudwatch_1_minute" {
   statement_id  = "AllowExecutionFromCloudWatch_1_minute"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.my_lambda.function_name
+  function_name = aws_lambda_function.visa_bulleting_grab_lambda.function_name
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.every_1_minute.arn
 }
