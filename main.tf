@@ -46,24 +46,24 @@ resource "aws_lambda_function" "visa_bulleting_grab_lambda" {
   memory_size      = 200 // Memory size in MB
 }
 
-resource "aws_cloudwatch_event_rule" "every_1_minute" {
-  name                = "every_1_minute"
-  description         = "Fires every 1 minute"
-  schedule_expression = "rate(1 minute)"
+resource "aws_cloudwatch_event_rule" "every_2_hours" {
+  name                = "every_2_hours"
+  description         = "Fires every 2 hours"
+  schedule_expression = "rate(2 hours)"
 }
 
-resource "aws_cloudwatch_event_target" "visa_bulleting_grab_lambda_target_1_minute" {
-  rule      = aws_cloudwatch_event_rule.every_1_minute.name
-  target_id = "visa_bulleting_grab_lambda_target_1_minute"
+resource "aws_cloudwatch_event_target" "visa_bulleting_grab_lambda_target_2_hours" {
+  rule      = aws_cloudwatch_event_rule.every_2_hours.name
+  target_id = "visa_bulleting_grab_lambda_target_2_hours"
   arn       = aws_lambda_function.visa_bulleting_grab_lambda.arn
 }
 
-resource "aws_lambda_permission" "allow_cloudwatch_1_minute" {
-  statement_id  = "AllowExecutionFromCloudWatch_1_minute"
+resource "aws_lambda_permission" "allow_cloudwatch_2_hours" {
+  statement_id  = "AllowExecutionFromCloudWatch_2_hours"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.visa_bulleting_grab_lambda.function_name
   principal     = "events.amazonaws.com"
-  source_arn    = aws_cloudwatch_event_rule.every_1_minute.arn
+  source_arn    = aws_cloudwatch_event_rule.every_2_hours.arn
 }
 
 resource "aws_s3_bucket" "visa_bulletin_s3" {
