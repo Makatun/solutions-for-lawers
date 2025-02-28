@@ -66,14 +66,14 @@ resource "aws_lambda_permission" "allow_cloudwatch_2_hours" {
   source_arn    = aws_cloudwatch_event_rule.every_2_hours.arn
 }
 
-resource "aws_s3_bucket" "visa_bulletin_s3" {
-  bucket = "visa-bulleting-s3"
+# resource "aws_s3_bucket" "visa_bulletin_s3" {
+#   bucket = "visa-bulleting-s3"
 
-  tags = {
-    Name        = "visa-bulleting-s3"
-    Environment = "Dev"
-  }
-}
+#   tags = {
+#     Name        = "visa-bulleting-s3"
+#     Environment = "Dev"
+#   }
+# }
 
 resource "aws_iam_role_policy" "visa_bulleting_grab_lambda_s3_policy" {
   name = "visa_bulleting_grab_lambda_s3_policy"
@@ -91,8 +91,8 @@ resource "aws_iam_role_policy" "visa_bulleting_grab_lambda_s3_policy" {
           "s3:PutObjectAcl"
         ],
         Resource = [
-          "arn:aws:s3:::visa-bulleting-s3",
-          "arn:aws:s3:::visa-bulleting-s3/*"
+          "${aws_s3_bucket.file_storage.arn}",
+          "${aws_s3_bucket.file_storage.arn}/*"
         ]
       }
     ]
